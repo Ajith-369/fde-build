@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FDE Build Log — v7</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0d1117;--ink2:#1c2333;--ink3:#2d3748;
+  --paper:#f7f8fc;--paper2:#ffffff;--paper3:#eef0f6;--paper4:#e4e7f0;
+  --accent:#1a6ef5;--accent2:#0d4ec9;--accent-glow:rgba(26,110,245,.15);
+  --green:#16a34a;--green-bg:#f0fdf4;--green-border:#bbf7d0;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-border:#fde68a;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#ddd6fe;
+  --teal:#0d9488;--teal-bg:#f0fdfa;--teal-border:#99f6e4;
+  --s-pending-c:#94a3b8;--s-pending-bg:#f8fafc;--s-pending-b:#e2e8f0;
+  --s-wip-c:#1a6ef5;--s-wip-bg:#eff6ff;--s-wip-b:#bfdbfe;
+  --s-review-c:#d97706;--s-review-bg:#fffbeb;--s-review-b:#fde68a;
+  --s-done-c:#16a34a;--s-done-bg:#f0fdf4;--s-done-b:#bbf7d0;
+  --font-display:'Syne',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-body:'Lato',sans-serif;
+  --r:12px;--r-sm:8px;--r-xs:5px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sh-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.05);
+  --sh-lg:0 12px 28px rgba(0,0,0,.1),0 4px 8px rgba(0,0,0,.06);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --ink:#e6edf3;--ink2:#8b949e;--ink3:#6e7681;
+    --paper:#0d1117;--paper2:#161b22;--paper3:#1c2333;--paper4:#21262d;
+    --accent:#58a6ff;--accent2:#388bfd;--accent-glow:rgba(88,166,255,.12);
+    --green:#3fb950;--green-bg:rgba(23,160,74,.1);--green-border:rgba(63,185,80,.3);
+    --amber:#e3b341;--amber-bg:rgba(187,128,9,.1);--amber-border:rgba(187,128,9,.3);
+    --red:#f85149;--red-bg:rgba(248,81,73,.1);--red-border:rgba(248,81,73,.3);
+    --purple:#bc8cff;--purple-bg:rgba(188,140,255,.1);--purple-border:rgba(188,140,255,.3);
+    --teal:#39d353;--teal-bg:rgba(57,211,83,.08);--teal-border:rgba(57,211,83,.25);
+    --s-pending-c:#6e7681;--s-pending-bg:#21262d;--s-pending-b:#30363d;
+    --s-wip-c:#58a6ff;--s-wip-bg:rgba(88,166,255,.1);--s-wip-b:rgba(88,166,255,.3);
+    --s-review-c:#e3b341;--s-review-bg:rgba(187,128,9,.1);--s-review-b:rgba(187,128,9,.3);
+    --s-done-c:#3fb950;--s-done-bg:rgba(23,160,74,.1);--s-done-b:rgba(63,185,80,.3);
+    --sh:0 1px 3px rgba(0,0,0,.3);--sh-md:0 4px 12px rgba(0,0,0,.4);--sh-lg:0 12px 28px rgba(0,0,0,.5);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6}
+.page{max-width:860px;margin:0 auto;padding:16px 14px 100px}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg,#0a1628 0%,#0d2045 50%,#0a1628 100%);
+  border-radius:var(--r);padding:22px 24px 20px;margin-bottom:12px;
+  position:relative;overflow:hidden;box-shadow:var(--sh-lg);
+  border:1px solid rgba(255,255,255,.06)
+}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(26,110,245,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(26,110,245,.06) 1px,transparent 1px);background-size:30px 30px;pointer-events:none}
+.hero-glow{position:absolute;top:-60px;right:-40px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(26,110,245,.15) 0%,transparent 70%);pointer-events:none}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:relative}
+.hero-left h1{font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:3px}
+.hero-tag{display:inline-block;font-size:10px;font-family:var(--font-mono);background:rgba(26,110,245,.3);border:1px solid rgba(26,110,245,.5);color:#93c5fd;padding:2px 8px;border-radius:99px;margin-right:5px;margin-bottom:6px}
+.hero-left p{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px}
+.hero-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0}
+.hbtn{font-size:11px;padding:5px 12px;border:1px solid rgba(255,255,255,.2);border-radius:99px;cursor:pointer;color:rgba(255,255,255,.8);background:rgba(255,255,255,.07);font-weight:600;transition:all .15s;white-space:nowrap;font-family:var(--font-body)}
+.hbtn:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4)}
+.hbtn.danger{border-color:rgba(220,38,38,.4);color:rgba(248,113,113,.9)}
+.hbtn.danger:hover{background:rgba(220,38,38,.15)}
+
+/* ── MODE TOGGLE ── */
+.mode-bar{background:var(--paper2);border:1.5px solid var(--paper4);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:12px;box-shadow:var(--sh);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mode-label{font-size:11px;font-weight:700;color:var(--ink2);font-family:var(--font-mono);white-space:nowrap;text-transform:uppercase;letter-spacing:.08em}
+.mode-options{display:flex;gap:6px;flex-wrap:wrap}
+.mode-btn{font-size:11px;padding:5px 14px;border-radius:99px;cursor:pointer;border:1.5px solid var(--paper4);color:var(--ink2);background:var(--paper3);font-weight:600;transition:all .15s;font-family:var(--font-body)}
+.mode-btn:hover{border-color:var(--accent);color:var(--accent)}
+.mode-btn.active.beginner{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.mode-btn.active.intermediate{background:#fffbeb;border-color:#fbbf24;color:#92400e}
+.mode-btn.active.pro{background:#f5f3ff;border-color:#a78bfa;color:#5b21b6}
+@media(prefers-color-scheme:dark){
+  .mode-btn.active.beginner{background:rgba(29,78,216,.15);border-color:rgba(147,197,253,.4);color:#93c5fd}
+  .mode-btn.active.intermediate{background:rgba(146,64,14,.15);border-color:rgba(251,191,36,.4);color:#fbbf24}
+  .mode-btn.active.pro{background:rgba(91,33,182,.15);border-color:rgba(167,139,250,.4);color:#a78bfa}
+}
+.mode-desc{font-size:11px;color:var(--ink3);margin-left:auto;font-style:italic}
+
+/* ── WHERE WE ARE ── */
+.where-box{background:linear-gradient(135deg,var(--accent-glow),transparent);border:1.5px solid var(--s-wip-b);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:12px;box-shadow:var(--sh)}
+.where-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-family:var(--font-mono);margin-bottom:8px}
+.where-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.where-item label{font-size:10px;color:var(--ink3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font-mono);display:block;margin-bottom:2px}
+.where-item select,.where-item input{width:100%;background:var(--paper2);border:1px solid var(--paper4);border-radius:var(--r-xs);padding:6px 9px;font-size:12px;color:var(--ink);font-family:var(--font-body);outline:none;transition:border-color .15s}
+.where-item select:focus,.where-item input:focus{border-color:var(--accent)}
+.where-full{grid-column:1/-1}
+
+/* ── RESCUE MODE ── */
+.rescue-btn{width:100%;background:linear-gradient(135deg,#7c2d12,#c2410c);border:none;border-radius:var(--r-sm);padding:11px 16px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-display);letter-spacing:.02em;margin-bottom:12px;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--sh-md)}
+.rescue-btn:hover{opacity:.9}
+.rescue-panel{display:none;background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:12px;margin-top:-8px}
+.rescue-panel.show{display:block}
+.rescue-task{font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px;font-family:var(--font-display)}
+.rescue-why{font-size:12px;color:var(--ink2);line-height:1.6}
+.rescue-next{margin-top:10px;display:flex;gap:8px}
+.rescue-accept{font-size:11px;padding:5px 12px;border-radius:99px;background:var(--red);color:#fff;border:none;cursor:pointer;font-weight:600;font-family:var(--font-body);transition:opacity .15s}
+.rescue-accept:hover{opacity:.85}
+.rescue-skip{font-size:11px;padding:5px 12px;border-radius:99px;background:var(--paper3);color:var(--ink2);border:1px solid var(--paper4);cursor:pointer;font-weight:600;font-family:var(--font-body)}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-bottom:10px}
+.sc{border-radius:var(--r-sm);padding:10px 6px;text-align:center;border:1.5px solid var(--paper4);background:var(--paper2);box-shadow:var(--sh);transition:transform .15s}
+.sc:hover{transform:translateY(-1px)}
+.sc-num{font-size:20px;font-weight:700;letter-spacing:-.02em;font-family:var(--font-mono)}
+.sc-lbl{font-size:10px;margin-top:1px;color:var(--ink2);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+
+/* ── PROGRESS ── */
+.prog-wrap{margin-bottom:10px}
+.prog-track{background:var(--paper3);border-radius:99px;height:8px;overflow:hidden;margin-bottom:4px;border:1px solid var(--paper4)}
+.prog-fill{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--accent),var(--green))}
+.prog-lbl{font-size:11px;color:var(--ink2);display:flex;justify-content:space-between}
+
+/* ── XP BAR ── */
+.xp-wrap{background:var(--paper2);border:1.5px solid var(--paper4);border-radius:var(--r-sm);padding:9px 13px;margin-bottom:10px;display:flex;align-items:center;gap:11px;box-shadow:var(--sh)}
+.xp-lbl{font-size:11px;font-weight:700;color:var(--amber);white-space:nowrap;font-family:var(--font-mono)}
+.xp-track{flex:1;background:var(--paper3);border-radius:99px;height:7px;overflow:hidden;border:1px solid var(--paper4)}
+.xp-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--amber),#e25a2e);transition:width .5s}
+.xp-level{font-size:11px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-border);padding:2px 9px;border-radius:99px;white-space:nowrap;font-family:var(--font-mono)}
+
+/* ── STREAK ── */
+.streak-wrap{display:flex;align-items:center;gap:10px;background:var(--paper2);border:1.5px solid var(--paper4);border-radius:var(--r-sm);padding:9px 13px;margin-bottom:10px;box-shadow:var(--sh)}
+.streak-fire{font-size:20px}
+.streak-num{font-size:18px;font-weight:700;color:var(--amber);font-family:var(--font-mono);line-height:1}
+.streak-sub{font-size:11px;color:var(--ink2);margin-top:1px}
+.streak-best{font-size:11px;font-weight:700;color:var(--ink2);background:var(--paper3);padding:3px 9px;border-radius:99px;border:1px solid var(--paper4);white-space:nowrap;font-family:var(--font-mono)}
+
+/* ── QUOTE ── */
+.quote-box{background:linear-gradient(135deg,#0a1628,#0d2a5e);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:10px;color:#fff;cursor:pointer;position:relative;overflow:hidden;transition:opacity .2s}
+.quote-box:hover{opacity:.9}
+.quote-box::before{content:'"';position:absolute;top:-16px;left:8px;font-size:100px;opacity:.07;font-family:Georgia,serif;line-height:1;pointer-events:none}
+.q-text{font-size:12.5px;line-height:1.7;opacity:.9;font-style:italic;position:relative}
+.q-author{font-size:10px;opacity:.5;margin-top:4px;font-weight:700;letter-spacing:.06em;font-family:var(--font-mono)}
+.q-hint{font-size:10px;opacity:.35;margin-top:4px;text-align:right}
+
+/* ── SESSION TIMER ── */
+.timer-wrap{background:var(--paper2);border:1.5px solid var(--paper4);border-radius:var(--r-sm);padding:9px 13px;margin-bottom:10px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh)}
+.timer-icon{font-size:16px}
+.timer-display{font-size:16px;font-weight:700;color:var(--accent);font-family:var(--font-mono);min-width:50px}
+.timer-display.warning{color:var(--amber)}
+.timer-display.done{color:var(--green)}
+.timer-lbl{font-size:11px;color:var(--ink2);flex:1}
+.timer-btn{font-size:11px;padding:4px 10px;border-radius:99px;border:1.5px solid var(--paper4);color:var(--ink2);background:var(--paper3);cursor:pointer;font-weight:600;transition:all .15s;font-family:var(--font-body)}
+.timer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.timer-btn.active{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative;margin-bottom:10px}
+.search-input{width:100%;background:var(--paper2);border:1.5px solid var(--paper4);border-radius:var(--r-sm);padding:9px 12px 9px 34px;font-size:13px;color:var(--ink);font-family:var(--font-body);outline:none;transition:border-color .15s;box-shadow:var(--sh)}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--ink3)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;opacity:.4}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;cursor:pointer;color:var(--ink3);background:none;border:none;padding:2px;display:none}
+.search-clear.show{display:block}
+.search-count{font-size:11px;color:var(--ink2);margin-bottom:8px;display:none}
+
+/* ── FILTERS ── */
+.filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filter-lbl{font-size:10px;color:var(--ink3);font-weight:700;white-space:nowrap;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em}
+.ftab{font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;border:1.5px solid var(--paper4);color:var(--ink2);background:var(--paper3);font-weight:600;transition:all .15s;font-family:var(--font-body)}
+.ftab:hover{border-color:var(--accent);color:var(--accent)}
+.ftab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ftab.g{border-color:var(--green-border);color:var(--green);background:var(--green-bg)}
+.ftab.g.active{background:var(--green);color:#fff}
+.ftab.a{border-color:var(--amber-border);color:var(--amber);background:var(--amber-bg)}
+.ftab.a.active{background:var(--amber);color:#fff}
+.ftab.r{border-color:var(--red-border);color:var(--red);background:var(--red-bg)}
+.ftab.r.active{background:var(--red);color:#fff}
+.ftab.p{border-color:var(--purple-border);color:var(--purple);background:var(--purple-bg)}
+.ftab.p.active{background:var(--purple);color:#fff}
+
+/* ── HABIT TRACKER ── */
+.habit-tracker{background:var(--paper2);border:1.5px solid var(--paper4);border-radius:var(--r);padding:13px 15px;margin-bottom:10px;box-shadow:var(--sh)}
+.habit-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:9px;font-family:var(--font-display)}
+.habit-row{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--paper3)}
+.habit-row:last-child{border-bottom:none}
+.habit-lbl{flex:1;font-size:12px;color:var(--ink2);min-width:130px}
+.habit-dots{display:flex;gap:4px}
+.hdot{width:21px;height:21px;border-radius:50%;border:2px solid var(--paper4);background:var(--paper3);cursor:pointer;transition:all .15s;font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-weight:700}
+.hdot.done{background:var(--green);border-color:var(--green);color:#fff}
+.hdot.today{border-color:var(--accent);border-width:2.5px}
+.hday-lbl{width:21px;text-align:center;font-size:9px;color:var(--ink3);font-family:var(--font-mono)}
+
+/* ── NOTES ── */
+.notes-box{background:var(--paper2);border:1.5px solid var(--paper4);border-radius:var(--r);padding:13px 15px;margin-bottom:10px;box-shadow:var(--sh)}
+.notes-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:7px;font-family:var(--font-display)}
+.notes-area{width:100%;min-height:60px;background:var(--paper3);border:1px solid var(--paper4);border-radius:var(--r-sm);padding:9px 11px;font-size:12px;color:var(--ink);font-family:var(--font-body);resize:vertical;outline:none;transition:border-color .15s;line-height:1.6}
+.notes-area:focus{border-color:var(--accent)}
+.notes-area::placeholder{color:var(--ink3)}
+.notes-foot{font-size:11px;color:var(--ink3);display:flex;justify-content:flex-end;gap:8px;margin-top:5px}
+.saved-msg{font-size:11px;color:var(--green);font-weight:600;opacity:0;transition:opacity .3s}
+.saved-msg.show{opacity:1}
+
+/* ── PROJECT CARD ── */
+.proj-card{border-radius:var(--r);margin-bottom:10px;overflow:hidden;border:1.5px solid var(--paper4);box-shadow:var(--sh);transition:box-shadow .2s}
+.proj-card:hover{box-shadow:var(--sh-md)}
+.proj-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none}
+.proj-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;background:rgba(255,255,255,.2);color:#fff;font-family:var(--font-mono)}
+.proj-info{flex:1;min-width:0}
+.proj-title{font-size:13px;font-weight:700;color:#fff;font-family:var(--font-display);letter-spacing:-.01em}
+.proj-sub{font-size:10.5px;opacity:.7;color:#fff;margin-top:1px}
+.proj-right{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.proj-count{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.18);color:#fff;font-family:var(--font-mono);white-space:nowrap}
+.proj-chev{font-size:10px;color:rgba(255,255,255,.6);transition:transform .2s}
+.proj-chev.open{transform:rotate(90deg)}
+.proj-prog{height:3px;background:rgba(255,255,255,.15);overflow:hidden}
+.proj-prog-fill{height:100%;background:rgba(255,255,255,.85);transition:width .4s}
+.proj-body{display:none;background:var(--paper2);padding:13px 14px 15px}
+.proj-body.open{display:block}
+
+/* ── GOAL / JOB / SKILL BOXES ── */
+.goal-box{font-size:12px;color:var(--ink2);background:var(--paper3);border-radius:var(--r-sm);padding:9px 12px;margin-bottom:8px;border-left:3px solid var(--accent);line-height:1.65}
+.goal-box strong{color:var(--accent);font-weight:700}
+.skill-box{font-size:12px;background:var(--purple-bg);border-radius:var(--r-sm);padding:9px 12px;margin-bottom:8px;border:1px solid var(--purple-border);line-height:1.6}
+.skill-box strong{color:var(--purple);font-weight:700;font-family:var(--font-mono);font-size:10.5px}
+.job-box{font-size:12px;background:var(--green-bg);border-radius:var(--r-sm);padding:9px 12px;margin-bottom:12px;border:1px solid var(--green-border);line-height:1.6}
+.job-box strong{color:var(--green);font-weight:700;font-family:var(--font-mono);font-size:10.5px}
+.job-pill{display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:99px;background:rgba(255,255,255,.55);border:1px solid var(--green-border);color:var(--green);margin:1px 2px}
+@media(prefers-color-scheme:dark){
+  .job-pill{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.3);color:#3fb950}
+}
+
+/* ── LEVEL BADGE ── */
+.level-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;font-family:var(--font-mono);border:1.5px solid;margin-bottom:8px}
+.level-1{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.level-2{background:#fffbeb;border-color:#fbbf24;color:#92400e}
+.level-3{background:#f5f3ff;border-color:#a78bfa;color:#5b21b6}
+@media(prefers-color-scheme:dark){
+  .level-1{background:rgba(29,78,216,.15);border-color:rgba(147,197,253,.4);color:#93c5fd}
+  .level-2{background:rgba(146,64,14,.15);border-color:rgba(251,191,36,.4);color:#fbbf24}
+  .level-3{background:rgba(91,33,182,.15);border-color:rgba(167,139,250,.4);color:#a78bfa}
+}
+
+/* ── SECTION ── */
+.sec-head{display:flex;align-items:center;gap:8px;margin:12px 0 7px}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;font-family:var(--font-mono)}
+.sec-line{flex:1;height:1px;background:var(--paper4)}
+
+/* ══════════════════════════════════════
+   BUILD LOG CARD
+   ══════════════════════════════════════ */
+.blog-card{border-radius:var(--r-sm);border:1.5px solid var(--s-pending-b);background:var(--paper2);margin-bottom:7px;overflow:hidden;transition:box-shadow .15s,border-color .2s;box-shadow:var(--sh)}
+.blog-card:hover{box-shadow:var(--sh-md)}
+.blog-card.status-wip{border-color:var(--s-wip-b);box-shadow:0 0 0 2px rgba(26,110,245,.07)}
+.blog-card.status-review{border-color:var(--s-review-b);box-shadow:0 0 0 2px rgba(217,119,6,.07)}
+.blog-card.status-done{border-color:var(--s-done-b);opacity:.72}
+.blog-card.search-hide{display:none!important}
+
+.bc-head{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;user-select:none;transition:background .1s}
+.bc-head:hover{background:var(--paper3)}
+
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap;font-family:var(--font-mono);border:1.5px solid;cursor:pointer;transition:all .15s;flex-shrink:0}
+.status-badge.pending{background:var(--s-pending-bg);color:var(--s-pending-c);border-color:var(--s-pending-b)}
+.status-badge.wip{background:var(--s-wip-bg);color:var(--s-wip-c);border-color:var(--s-wip-b)}
+.status-badge.review{background:var(--s-review-bg);color:var(--s-review-c);border-color:var(--s-review-b)}
+.status-badge.done{background:var(--s-done-bg);color:var(--s-done-c);border-color:var(--s-done-b)}
+
+.bc-name{flex:1;font-size:12.5px;font-weight:600;color:var(--ink);min-width:0;line-height:1.4}
+.blog-card.status-done .bc-name{text-decoration:line-through;color:var(--ink2)}
+
+/* WHY BOX — always visible, no mode gate */
+.why-box{background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r-xs) var(--r-xs) 0;padding:7px 11px;margin:0 12px 0;font-size:11.5px;color:var(--ink2);line-height:1.6;display:none}
+.why-box.show{display:block}
+.why-box strong{color:var(--amber);font-weight:700}
+
+.bc-chev{font-size:10px;color:var(--ink3);transition:transform .2s;flex-shrink:0}
+.bc-chev.open{transform:rotate(90deg)}
+
+/* LOG BODY — shown based on mode */
+.bc-body{display:none;padding:0 12px 12px}
+.bc-body.open{display:block}
+
+/* beginner mode: only status actions */
+.beginner-actions{margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+/* intermediate+ fields */
+.log-fields{display:none}
+.mode-intermediate .log-fields,
+.mode-pro .log-fields{display:block}
+
+.log-field{margin-top:9px}
+.log-field-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;font-family:var(--font-mono);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.lfl-num{width:17px;height:17px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;color:#fff}
+.log-textarea{width:100%;background:var(--paper3);border:1.5px solid var(--paper4);border-radius:var(--r-xs);padding:8px 10px;font-size:12px;color:var(--ink);font-family:var(--font-mono);resize:vertical;outline:none;transition:border-color .15s;line-height:1.7;min-height:55px}
+.log-textarea:focus{border-color:var(--accent)}
+.log-textarea::placeholder{color:var(--ink3);font-style:italic}
+.log-textarea.code-f{min-height:80px;font-size:11.5px}
+
+/* pro-only fields */
+.pro-only{display:none}
+.mode-pro .pro-only{display:block}
+
+/* field colors */
+.lf-1 .log-field-label{color:var(--accent)}.lf-1 .lfl-num{background:var(--accent)}.lf-1 .log-textarea:focus{border-color:var(--accent)}
+.lf-2 .log-field-label{color:var(--purple)}.lf-2 .lfl-num{background:var(--purple)}.lf-2 .log-textarea:focus{border-color:var(--purple)}
+.lf-3 .log-field-label{color:#d97706}.lf-3 .lfl-num{background:#d97706}.lf-3 .log-textarea:focus{border-color:#d97706}
+.lf-4 .log-field-label{color:var(--teal)}.lf-4 .lfl-num{background:var(--teal)}.lf-4 .log-textarea:focus{border-color:var(--teal)}
+.lf-5 .log-field-label{color:var(--green)}.lf-5 .lfl-num{background:var(--green)}.lf-5 .log-textarea:focus{border-color:var(--green)}
+
+/* actions */
+.bc-actions{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.bc-save-btn{font-size:11px;padding:4px 11px;border-radius:99px;border:1.5px solid var(--s-wip-b);color:var(--accent);background:var(--s-wip-bg);cursor:pointer;font-weight:600;transition:all .15s}
+.bc-save-btn:hover{background:var(--s-wip-b)}
+.bc-warn{font-size:11px;color:var(--red);background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r-xs);padding:6px 9px;margin-top:7px;line-height:1.6;display:none}
+.bc-warn.show{display:block}
+.bc-mark-btns{display:flex;gap:5px;margin-left:auto}
+.smb{font-size:10px;padding:4px 10px;border-radius:99px;cursor:pointer;font-weight:700;border:1.5px solid;transition:all .15s;font-family:var(--font-mono)}
+.smb.to-wip{background:var(--s-wip-bg);color:var(--s-wip-c);border-color:var(--s-wip-b)}
+.smb.to-review{background:var(--s-review-bg);color:var(--s-review-c);border-color:var(--s-review-b)}
+.smb.to-done{background:var(--s-done-bg);color:var(--s-done-c);border-color:var(--s-done-b)}
+.smb.to-pending{background:var(--s-pending-bg);color:var(--s-pending-c);border-color:var(--s-pending-b)}
+
+/* mentor note */
+.mentor-box{background:var(--paper3);border-radius:0 var(--r-sm) var(--r-sm) 0;border-left:3px solid var(--accent);padding:9px 13px;margin-top:12px;font-size:12px;color:var(--ink2);line-height:1.65}
+.mentor-box strong{color:var(--ink);font-weight:600}
+
+/* ── DIARY ── */
+.diary-wrap{background:var(--paper2);border:1.5px solid var(--paper4);border-radius:var(--r);padding:13px 15px;margin-bottom:10px;box-shadow:var(--sh)}
+.diary-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;font-family:var(--font-display)}
+.diary-tabs{display:flex;gap:5px;margin-bottom:9px;flex-wrap:wrap}
+.diary-tab{font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;border:1.5px solid var(--paper4);color:var(--ink2);background:var(--paper3);font-weight:500;transition:all .15s}
+.diary-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.diary-entry{display:none}
+.diary-entry.active{display:block}
+.diary-area{width:100%;min-height:56px;background:var(--paper3);border:1px solid var(--paper4);border-radius:var(--r-sm);padding:9px 11px;font-size:12px;color:var(--ink);font-family:var(--font-body);resize:vertical;outline:none;transition:border-color .15s;line-height:1.6}
+.diary-area:focus{border-color:var(--accent)}
+.diary-area::placeholder{color:var(--ink3)}
+.diary-meta{font-size:11px;color:var(--ink3);margin-top:4px;display:flex;justify-content:space-between}
+
+/* ── RESUME PROMPT ── */
+.prompt-box{background:var(--paper2);border:1.5px solid var(--amber-border);border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;box-shadow:var(--sh)}
+.prompt-title{font-size:11px;font-weight:700;color:var(--amber);font-family:var(--font-mono);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.prompt-snippet{font-size:11px;color:var(--ink2);background:var(--paper3);border-radius:var(--r-xs);padding:8px 10px;font-family:var(--font-mono);line-height:1.6;border:1px solid var(--paper4);white-space:pre-wrap;word-break:break-word;max-height:74px;overflow:hidden;position:relative}
+.prompt-snippet::after{content:'';position:absolute;bottom:0;left:0;right:0;height:22px;background:linear-gradient(transparent,var(--paper3))}
+.prompt-copy-btn{font-size:11px;padding:4px 10px;border-radius:99px;border:1.5px solid var(--amber-border);color:var(--amber);background:var(--amber-bg);cursor:pointer;font-weight:600;transition:all .15s}
+.prompt-copy-btn:hover{background:var(--amber-border)}
+
+/* ── SCROLL TOP ── */
+.scroll-top{position:fixed;bottom:20px;right:20px;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-md);opacity:0;transition:opacity .3s;z-index:100}
+.scroll-top.visible{opacity:1}
+</style>
+</head>
+<body>
+<div class="page" id="app-root">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-top">
+    <div class="hero-left">
+      <h1>FDE Build Log <span style="opacity:.5;font-size:13px">v7</span></h1>
+      <div style="margin-top:4px">
+        <span class="hero-tag">5 Projects</span>
+        <span class="hero-tag">3 Gear Levels</span>
+        <span class="hero-tag">Rescue Mode</span>
+        <span class="hero-tag">Beginner → FDE</span>
+      </div>
+      <p>Build real things. Learn just enough theory. Never get lost after a break.</p>
+    </div>
+    <div class="hero-btns">
+      <button class="hbtn" onclick="exportProgress()">📤 Export</button>
+      <button class="hbtn danger" onclick="resetAll()">↺ Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODE TOGGLE -->
+<div class="mode-bar">
+  <span class="mode-label">⚙ Learning Mode</span>
+  <div class="mode-options">
+    <button class="mode-btn beginner active" id="mb-beginner" onclick="setMode('beginner',this)">⬤ Beginner — just track status</button>
+    <button class="mode-btn intermediate" id="mb-intermediate" onclick="setMode('intermediate',this)">◈ Intermediate — add Gotcha + Code</button>
+    <button class="mode-btn pro" id="mb-pro" onclick="setMode('pro',this)">◆ Pro — full 5-field Build Log</button>
+  </div>
+  <span class="mode-desc" id="mode-desc">Switch when YOU feel ready — nobody decides for you</span>
+</div>
+
+<!-- WHERE WE ARE -->
+<div class="where-box">
+  <div class="where-title">📍 Where We Are — fill this every session</div>
+  <div class="where-grid">
+    <div class="where-item">
+      <label>Current Project</label>
+      <select id="curr-proj" onchange="saveWhere()">
+        <option>Project 1 — Bulletproof Ingestion Engine</option>
+        <option>Project 2 — Explainable Risk Scoring System</option>
+        <option>Project 3 — Forward Deployed Service Architecture</option>
+        <option>Project 4 — Agentic Financial Research Analyst</option>
+        <option>Project 5 — FDE Capstone: Lending Intelligence Platform</option>
+      </select>
+    </div>
+    <div class="where-item">
+      <label>Current Level</label>
+      <select id="curr-level" onchange="saveWhere()">
+        <option>Level 1 — Make It Work</option>
+        <option>Level 2 — Make It Survive</option>
+        <option>Level 3 — Make It Professional</option>
+      </select>
+    </div>
+    <div class="where-item where-full">
+      <label>Last thing I did / Next target (2 lines — so gaps don't derail you)</label>
+      <input type="text" id="curr-note" placeholder="e.g. Built fetch_data() with try-except. Next: add retry logic with 2s backoff." oninput="saveWhere()">
+    </div>
+  </div>
+</div>
+
+<!-- RESCUE MODE -->
+<button class="rescue-btn" onclick="toggleRescue()">🚨 RESCUE MODE — Only have 20 minutes? Click here.</button>
+<div class="rescue-panel" id="rescue-panel">
+  <div class="rescue-task" id="rescue-task">Finding your rescue task...</div>
+  <div class="rescue-why" id="rescue-why"></div>
+  <div class="rescue-next">
+    <button class="rescue-accept" onclick="closeRescue()">✓ Got it — starting now</button>
+    <button class="rescue-skip" onclick="nextRescue()">Try a different task</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid" id="stats-grid"></div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap">
+  <div class="prog-track"><div class="prog-fill" id="main-fill" style="width:0%"></div></div>
+  <div class="prog-lbl"><span id="main-lbl">Loading...</span><span id="main-pct">0%</span></div>
+</div>
+
+<!-- XP -->
+<div class="xp-wrap">
+  <span class="xp-lbl">🔥 XP</span>
+  <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+  <span class="xp-level" id="xp-level">Apprentice</span>
+</div>
+
+<!-- STREAK -->
+<div class="streak-wrap">
+  <div class="streak-fire">🔥</div>
+  <div style="flex:1">
+    <div class="streak-num" id="streak-num">0</div>
+    <div class="streak-sub" id="streak-sub">day streak</div>
+  </div>
+  <div class="streak-best" id="streak-best">Best: 0</div>
+</div>
+
+<!-- QUOTE -->
+<div class="quote-box" onclick="nextQuote()">
+  <div class="q-text" id="q-text">Loading...</div>
+  <div class="q-author" id="q-author"></div>
+  <div class="q-hint">tap for new quote</div>
+</div>
+
+<!-- SESSION TIMER -->
+<div class="timer-wrap">
+  <div class="timer-icon">⏱</div>
+  <div>
+    <div class="timer-display" id="timer-display">00:00</div>
+    <div class="timer-lbl" id="timer-lbl">Start your 1-hour session timer</div>
+  </div>
+  <button class="timer-btn" id="timer-btn" onclick="toggleTimer()">Start</button>
+  <button class="timer-btn" onclick="resetTimer()" style="margin-left:2px">Reset</button>
+</div>
+
+<!-- SEARCH -->
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input class="search-input" id="search-input" type="text" placeholder="Search any concept, project, or skill..." oninput="handleSearch(this)">
+  <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+</div>
+<div class="search-count" id="search-count"></div>
+
+<!-- FILTERS -->
+<div class="filter-row">
+  <span class="filter-lbl">Filter:</span>
+  <button class="ftab active" onclick="setFilter('all',this)">All</button>
+  <button class="ftab" onclick="setFilter('pending',this)">Pending</button>
+  <button class="ftab" onclick="setFilter('wip',this)">In Progress</button>
+  <button class="ftab a" onclick="setFilter('review',this)">Under Review</button>
+  <button class="ftab g" onclick="setFilter('done',this)">✅ Done</button>
+  <button class="ftab" onclick="setFilter('build',this)">Builds</button>
+  <button class="ftab r" onclick="setFilter('fail',this)">Failure Modes</button>
+  <button class="ftab p" onclick="setFilter('gov',this)">Governance</button>
+  <button class="ftab" onclick="setFilter('interview',this)">Interview</button>
+</div>
+
+<!-- HABIT TRACKER -->
+<div class="habit-tracker">
+  <div class="habit-title">📅 Weekly Habit Tracker</div>
+  <div style="display:flex;gap:9px;margin-bottom:4px">
+    <div style="min-width:130px;flex-shrink:0"></div>
+    <div class="habit-dots" id="day-labels"></div>
+  </div>
+  <div id="habits-body"></div>
+</div>
+
+<!-- SESSION NOTES -->
+<div class="notes-box">
+  <div class="notes-title">📝 Session Notes</div>
+  <textarea class="notes-area" id="notes-area" placeholder="What broke? What clicked? What do you want to ask your AI mentor next session? Paste code, errors, confusion here..."></textarea>
+  <div class="notes-foot">
+    <span class="saved-msg" id="notes-saved">✓ Saved</span>
+    <span id="notes-char">0 chars</span>
+  </div>
+</div>
+
+<!-- DIARY -->
+<div class="diary-wrap">
+  <div class="diary-title">📓 Project Diary <span class="saved-msg" id="diary-saved">✓ Saved</span></div>
+  <div class="diary-tabs" id="diary-tabs"></div>
+  <div id="diary-entries"></div>
+</div>
+
+<!-- RESUME PROMPT -->
+<div class="prompt-box">
+  <div class="prompt-title">
+    🤖 Resume Prompt — paste this to pick up with your AI mentor
+    <button class="prompt-copy-btn" id="prompt-copy-btn" onclick="copyResume()">Copy</button>
+  </div>
+  <div class="prompt-snippet" id="resume-snippet">Loading...</div>
+</div>
+
+<!-- PROJECTS -->
+<div id="projects-wrap"></div>
+
+</div>
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyC6GEvz3VK2RKpC3EXqXxRPSrk-G6e5sZw",
+  authDomain: "roadmap-sync-5fc1f.firebaseapp.com",
+  projectId: "roadmap-sync-5fc1f",
+  storageBucket: "roadmap-sync-5fc1f.firebasestorage.app",
+  messagingSenderId: "834903662109",
+  appId: "1:834903662109:web:1b1cc3cc8ae8c852a1b0f4"
+};
+const _app = initializeApp(firebaseConfig);
+const _db = getFirestore(_app);
+const DOC_REF = doc(_db, "progress", "fde_build_log");
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const PROJECTS=[
+{id:'p1',title:'Project 1: Bulletproof Data Ingestion Engine',phase:'Phase 1–2',
+ bg:'linear-gradient(135deg,#0C447C,#185FA5)',
+ goal:'Build code that doesn\'t just run — it SURVIVES. Flaky APIs, corrupted data, network timeouts. Real pipelines hit all of these on day one.',
+ skill:'<strong>INVISIBLE SKILL — Defensive Engineering:</strong> Writing code that recovers gracefully when the world fails it. This is what keeps billion-dollar bank pipelines running at 3am.',
+ jobs:'Roles unlocked: <span class="job-pill">Python Developer (Junior)</span><span class="job-pill">Data Analyst</span><span class="job-pill">ETL Developer</span>',
+ mentor:'<strong>Mentor:</strong> I can tell a junior from a senior in 30 seconds — I look for two things. Does the code use logging or print()? Does it catch specific exceptions or bare except:? Get these right from day one and you already look like you\'ve worked in a team.',
+ levels:[
+  {l:1,label:'Level 1 — Make It Work',badge:'level-1',hint:'Theory pill: Classes, try-except, logging basics. ~30 min read before touching code.',items:[
+   {n:'WHY CLASSES: 5 APIs, same interface — swap any without rewriting the script',tags:['why']},
+   {n:'Create MarketPipeline class with fetch_data(ticker) method',tags:['build']},
+   {n:'Use yfinance to fetch AAPL, BTC, GLD data',tags:['build']},
+   {n:'try-except: if fetch fails, LOG error (never print), move to next ticker',tags:['fail']},
+   {n:'Idempotency: check if data exists before saving — run twice, same result',tags:['build']},
+   {n:'Save to CSV with proper column types',tags:['build']},
+  ]},
+  {l:2,label:'Level 2 — Make It Survive',badge:'level-2',hint:'Unlocked when: your script crashes on network timeout. Docker unlocks in Level 3.',items:[
+   {n:'WHY RETRY: one timeout shouldn\'t kill a 100-ticker overnight run',tags:['why']},
+   {n:'Add retry logic: fail → wait 2s → retry → max 3 attempts → log and skip',tags:['build','fail']},
+   {n:'WHY SQLITE: CSV breaks when two processes write at the same time',tags:['why']},
+   {n:'Move storage from CSV to SQLite with UPSERT (no duplicate rows ever)',tags:['build']},
+   {n:'Git: init repo, .gitignore, first real commit with meaningful message',tags:['build']},
+   {n:'Write README that explains what this pipeline does and how to run it',tags:['build']},
+  ]},
+  {l:3,label:'Level 3 — Make It Professional',badge:'level-3',hint:'Unlocked when: "Your code works on your laptop. It breaks on mine." — Docker solves this.',items:[
+   {n:'WHY DOCKER: eliminates "works on my machine" forever',tags:['why']},
+   {n:'requirements.txt: pin every dependency with exact version numbers',tags:['build']},
+   {n:'Dockerfile: base image → COPY → RUN → CMD (nothing more for now)',tags:['build']},
+   {n:'WHY ENV FILES: hardcoding passwords is how engineers get fired',tags:['why']},
+   {n:'Move all config to .env file, NEVER commit it (add to .gitignore)',tags:['build']},
+   {n:'Unit tests: test fetch_data() with a mock API response',tags:['build']},
+   {n:'PORTFOLIO: "Fault-tolerant ETL pipeline with retry logic, SQLite upserts, Docker"',tags:['interview']},
+  ]},
+ ]},
+
+{id:'p2',title:'Project 2: Explainable Risk Scoring System',phase:'Phase 2–3',
+ bg:'linear-gradient(135deg,#085041,#0d6b56)',
+ goal:'Not just "train a model." Build something a CEO can use to defend a loan rejection in court. That\'s the bar for financial AI.',
+ skill:'<strong>INVISIBLE SKILL — Technical Diplomacy:</strong> Translating model math into business English. "The model said so" gets you fired. "Feature X contributed 43% to the rejection because..." gets you promoted.',
+ jobs:'Roles unlocked: <span class="job-pill">Junior Data Scientist ($55–80k)</span><span class="job-pill">Risk Analyst</span><span class="job-pill">ML Engineer (Junior)</span>',
+ mentor:'<strong>Mentor:</strong> Always visualize before you model. Plot everything. And build for the skeptic — assume the CEO will ask "why did you reject MY loan application?" You need a one-click answer ready before they ask.',
+ levels:[
+  {l:1,label:'Level 1 — Make It Predict',badge:'level-1',hint:'Theory pill: EDA, feature engineering, XGBoost, confusion matrix. ~40 min before coding.',items:[
+   {n:'WHY EDA FIRST: models trained on uncleaned data fail silently in production',tags:['why']},
+   {n:'Systematic EDA: missing values → duplicates → outliers — in that exact order',tags:['build']},
+   {n:'Feature engineering: scaling, one-hot encoding, correlation heatmap',tags:['build']},
+   {n:'Train XGBoost classifier on loan dataset',tags:['build']},
+   {n:'Evaluate with Precision, Recall, F1 — hand-calculate confusion matrix once',tags:['build']},
+   {n:'ROC-AUC curve: understand what it actually tells you about trade-offs',tags:['build']},
+  ]},
+  {l:2,label:'Level 2 — Make It Explainable',badge:'level-2',hint:'Unlocked when: someone asks "why was this loan rejected?" and you can\'t answer.',items:[
+   {n:'WHY SHAP: "the model said so" is not a legal answer in financial services',tags:['why']},
+   {n:'SHAP force plots: one per rejected loan showing each feature\'s contribution',tags:['build']},
+   {n:'Bias check: does the model penalize any demographic group unfairly? (legal risk)',tags:['fail','gov']},
+   {n:'Streamlit dashboard: CEO clicks any loan → sees WHY it was rejected',tags:['build']},
+   {n:'Log model metrics to file: accuracy, ROC-AUC, date of training run',tags:['build']},
+   {n:'Cross-validation: k-fold so your metrics aren\'t just lucky splits',tags:['build']},
+  ]},
+  {l:3,label:'Level 3 — Make It an API',badge:'level-3',hint:'Unlocked when: "The risk team wants to call your model from their system."',items:[
+   {n:'WHY FASTAPI: other systems need to query your model — not open your Streamlit',tags:['why']},
+   {n:'FastAPI: /predict endpoint returning risk score + confidence',tags:['build']},
+   {n:'/explain endpoint: returns SHAP values for any loan in JSON',tags:['build']},
+   {n:'Input validation: reject malformed requests with clear error messages',tags:['fail']},
+   {n:'OpenAPI docs: auto-generated — anyone can understand your API without asking you',tags:['build']},
+   {n:'PORTFOLIO: "XGBoost risk model with SHAP explainability, bias checks, FastAPI"',tags:['interview']},
+  ]},
+ ]},
+
+{id:'p3',title:'Project 3: Forward Deployed Service Architecture',phase:'Phase 3–4',
+ bg:'linear-gradient(135deg,#712B13,#a33d1a)',
+ goal:'Take your model off your laptop and put it somewhere anyone can use it — without you being there to fix it when it breaks.',
+ skill:'<strong>INVISIBLE SKILL — Architectural Empathy:</strong> Building for people who aren\'t you. Your README, your Docker setup, your error messages — they\'re for the engineer who inherits this at 2am.',
+ jobs:'Roles unlocked: <span class="job-pill">Backend Engineer</span><span class="job-pill">ML Engineer ($80–110k)</span><span class="job-pill">Platform Engineer</span>',
+ mentor:'<strong>Mentor:</strong> The FDE test is simple: can someone else run your code without you? If the answer is "they\'d need to call me," you\'re not done yet. Architecture empathy means your system speaks for itself.',
+ levels:[
+  {l:1,label:'Level 1 — Make It Deployable',badge:'level-1',hint:'Theory pill: CI/CD concept, Docker Compose, what a health check is. ~20 min.',items:[
+   {n:'WHY CI/CD: every push should auto-test — catching bugs before they reach users',tags:['why']},
+   {n:'Docker Compose: run risk model + Streamlit together with one command',tags:['build']},
+   {n:'GitHub Actions: on every push → run linter → run tests → report result',tags:['build']},
+   {n:'Add /health endpoint to FastAPI: returns {"status":"ok"} with uptime',tags:['build']},
+   {n:'Architecture diagram in README: boxes + arrows, not prose paragraphs',tags:['build']},
+  ]},
+  {l:2,label:'Level 2 — Make It Observable',badge:'level-2',hint:'Unlocked when: "Something is slow. You have no idea what or why."',items:[
+   {n:'WHY STRUCTURED LOGS: JSON logs are searchable. print() logs are noise.',tags:['why']},
+   {n:'Replace ALL print() with structured JSON logging throughout both projects',tags:['build','fail']},
+   {n:'Add request timing to every FastAPI endpoint',tags:['build']},
+   {n:'Simple dashboard: request count, error rate, avg response time',tags:['build']},
+   {n:'Alert: if error rate > 5%, send email/Slack notification',tags:['build','fail']},
+   {n:'PORTFOLIO: "Containerized ML service with CI/CD, structured logging, monitoring"',tags:['interview']},
+  ]},
+ ]},
+
+{id:'p4',title:'Project 4: Agentic Financial Research Analyst',phase:'Phase 4–5',
+ bg:'linear-gradient(135deg,#3C3489,#534AB7)',
+ goal:'Build an AI that reads financial documents, answers complex questions, and catches its own mistakes. Not a chatbot — an analyst.',
+ skill:'<strong>INVISIBLE SKILL — Systemic Resilience:</strong> Building AI that fails gracefully. An agent that confidently gives wrong answers is more dangerous than one that admits uncertainty.',
+ jobs:'Roles unlocked: <span class="job-pill">NLP Engineer</span><span class="job-pill">AI Engineer ($90–130k)</span><span class="job-pill">LLM Application Developer</span>',
+ mentor:'<strong>Mentor:</strong> Most hallucinations come from bad input structure, not the model. I\'ve seen clients blame GPT-4 when the real problem was unstructured, contradictory context. Fix the context before blaming the model.',
+ levels:[
+  {l:1,label:'Level 1 — Make It Retrieve',badge:'level-1',hint:'Theory pill: what embeddings are (GPS for words), what RAG solves. ~25 min.',items:[
+   {n:'WHY EMBEDDINGS: words as coordinates — similar meaning = nearby coordinates',tags:['why']},
+   {n:'Load 10 financial PDF reports using document loaders',tags:['build']},
+   {n:'WHY CHUNKING: LLMs have limited memory — chunking fits docs into that window',tags:['why']},
+   {n:'Chunk with RecursiveCharacterTextSplitter (tune chunk size + overlap)',tags:['build']},
+   {n:'Embed chunks and store in ChromaDB locally',tags:['build']},
+   {n:'Basic retrieval: question → similarity search → top 3 relevant chunks',tags:['build']},
+  ]},
+  {l:2,label:'Level 2 — Make It Talk',badge:'level-2',hint:'Unlocked when: "Retrieval works but the LLM still makes things up."',items:[
+   {n:'WHY TEMPERATURE 0: financial answers must be deterministic, not creative',tags:['why']},
+   {n:'Wire retrieval to Claude or OpenAI API with proper system/user messages',tags:['build']},
+   {n:'Add answer verification: LLM checks its own answer against source chunks',tags:['build','fail']},
+   {n:'Self-correction loop: if confidence is low, retrieve more context and retry',tags:['build','fail']},
+   {n:'Log every hallucination caught — this is a portfolio story',tags:['build']},
+   {n:'Prompt engineering: zero-shot → few-shot → chain-of-thought for complex Qs',tags:['build']},
+  ]},
+  {l:3,label:'Level 3 — Make It Agentic',badge:'level-3',hint:'Unlocked when: "Single Q&A is useful. Real analysts do multi-step research."',items:[
+   {n:'WHY LANGGRAPH: agents need to branch, loop, and recover — not just chain',tags:['why']},
+   {n:'LangGraph: Retrieve → Analyze → Verify → Answer nodes with conditional routing',tags:['build']},
+   {n:'Give agent tools: calculator, database query, document search',tags:['build']},
+   {n:'ReAct pattern: Reason → Act → Observe — implement and test it',tags:['build']},
+   {n:'Guardrails: agent cannot take irreversible action without explicit confirmation',tags:['gov','fail']},
+   {n:'Streamlit chat UI with source citations on every answer',tags:['build']},
+   {n:'PORTFOLIO: "Financial Q&A agent with RAG, LangGraph, self-correction, guardrails"',tags:['interview']},
+  ]},
+ ]},
+
+{id:'p5',title:'Project 5: FDE Capstone — Lending Intelligence Platform',phase:'Phase 5–6',
+ bg:'linear-gradient(135deg,#27500A,#3B6D11)',
+ goal:'All 4 projects talking to each other as one system. This is the thing that gets you hired. One demo. Every skill. End to end.',
+ skill:'<strong>INVISIBLE SKILL — Trusted Advisor:</strong> Being able to explain any part of this system to a CEO, a regulator, or a junior engineer — clearly, without jargon, in under 2 minutes.',
+ jobs:'FDE-ready: <span class="job-pill">Forward Deployed Engineer ($130–200k+)</span><span class="job-pill">AI Solutions Architect</span><span class="job-pill">AI Platform Engineer</span>',
+ mentor:'<strong>Mentor:</strong> A $150k engineer writes good code. A $400k FDE explains the system to a skeptical client, catches problems before deployment, and is still improving it 12 months later. This capstone proves you can do both.',
+ levels:[
+  {l:1,label:'Level 1 — Wire It Together',badge:'level-1',hint:'All 4 projects must be complete before starting this.',items:[
+   {n:'Project 1 pipeline feeds live market data into the platform database',tags:['build']},
+   {n:'Project 2 risk engine scores loans using live features from the pipeline',tags:['build']},
+   {n:'Project 3 deployment wraps everything as one monitored, observable service',tags:['build']},
+   {n:'Project 4 agent answers: "Why was this loan rejected?" from contract PDFs',tags:['build']},
+   {n:'Single dashboard: loan officer sees data + score + explanation + agent Q&A',tags:['build']},
+  ]},
+  {l:2,label:'Level 2 — Make It Trustworthy',badge:'level-2',hint:'Regulators and compliance teams will ask hard questions. Have answers ready.',items:[
+   {n:'System Card: bias audit, data sources, known limitations, HITL triggers',tags:['gov']},
+   {n:'Data privacy map: what PII does the system touch and why',tags:['gov']},
+   {n:'Incident response plan: what happens when the model makes a bad call at 2am',tags:['gov','fail']},
+   {n:'Palantir Ontology alignment: Customers, Loans, Risk Events as connected objects',tags:['build']},
+   {n:'Failure mode analysis: 3 ways this platform fails silently in production',tags:['fail']},
+  ]},
+  {l:3,label:'Level 3 — Ship It',badge:'level-3',hint:'The live demo is your resume. Recruiters click links.',items:[
+   {n:'Deploy everything on a public URL with a live demo',tags:['build']},
+   {n:'Architecture diagram: shows all 5 systems talking to each other',tags:['build']},
+   {n:'3-minute demo video: narrate the full loan officer workflow',tags:['interview']},
+   {n:'Portfolio deck: 5 slides, one per project, all linking to live demos',tags:['interview']},
+   {n:'LinkedIn post: "I built an end-to-end Lending Intelligence Platform. Here\'s how."',tags:['interview']},
+   {n:'PORTFOLIO: "Full FDE stack: ETL + Risk AI + Deployed Service + Agentic Analyst"',tags:['interview']},
+  ]},
+ ]},
+];
+
+const STATUS_LABELS={pending:'⬜ Pending',wip:'🔵 In Progress',review:'🟡 Review',done:'✅ Done'};
+const STATUS_CYCLE={pending:'wip',wip:'review',review:'done',done:'pending'};
+
+const LOG_FIELDS=[
+  {n:'The Objective',hint:'What does mastering this achieve?',cls:'lf-1',ph:'What specific problem does this solve in your project?',code:false,intermediate:true},
+  {n:'The Gotcha',hint:'Real-world failure point',cls:'lf-2',ph:'e.g. "Catching bare except: swallows KeyboardInterrupt — pipeline fails silently at 3am"',code:false,intermediate:true},
+  {n:'The Code',hint:'Production-grade implementation',cls:'lf-3 code-f',ph:'No print() — use logging.\nNo bare except: — catch specific exceptions.\nType hints on every function.',code:true,intermediate:false},
+  {n:'The Verification',hint:'How you proved it is production-ready',cls:'lf-4',ph:'e.g. "Ran flake8 — 0 errors. Tested with: empty response, timeout, corrupted data. All caught and logged."',code:false,intermediate:false},
+];
+
+const AMATEUR_PATTERNS=[
+  {re:/print\s*\(/g,msg:'• print() detected → use logging.info() or logging.error() instead'},
+  {re:/except\s*:/g,msg:'• Bare except: → catches EVERYTHING including KeyboardInterrupt. Catch specific exceptions.'},
+  {re:/except\s+Exception\s*:/g,msg:'• except Exception: is too broad → be specific: except (ValueError, requests.Timeout):'},
+];
+
+const RESCUE_TASKS=[
+  {task:'Open your current project file. Read it top to bottom. Write one comment explaining what confuses you.',why:'Re-reading your own code is how senior engineers catch bugs they missed the first time. 20 minutes of this is real progress.'},
+  {task:'Write a docstring for one function you\'ve already built. Include: what it does, what it takes as input, what it returns.',why:'Docstrings are how you communicate with your future self at 2am. This takes 10 minutes and makes you look professional.'},
+  {task:'Open your GitHub repo. Make sure your README has: what the project does, how to run it, what it needs installed.',why:'Recruiters read READMEs before they read code. A good README is 20% of your portfolio impression.'},
+  {task:'Find one print() statement in your code and replace it with proper logging. Run it and check the output.',why:'Every print() replaced is one step closer to production-grade code. This one change separates juniors from seniors.'},
+  {task:'Write one test for a function you\'ve already built. It can be simple — just verify it returns the right type.',why:'One test is infinitely more than zero tests. It also forces you to understand your own code deeply.'},
+  {task:'Read one real post-mortem about a production failure (search "engineering post-mortem"). Take one note.',why:'Senior engineers learn from others\' failures. This is how FDEs think — systemically, not just about their own code.'},
+];
+let rescueIdx=0;
+
+const QUOTES=[
+  {t:"Build the thing. Ship the thing. Learn from the thing. Repeat.",a:"FDE Mentor"},
+  {t:"Confusion is not failure. It's the feeling of your brain rewiring itself.",a:"FDE Mentor"},
+  {t:"Every line of code you write is a vote for who you're becoming.",a:"FDE Mentor"},
+  {t:"Production code isn't code that works. It's code that fails gracefully.",a:"FDE Mentor"},
+  {t:"The goal isn't to know everything. It's to be able to figure out anything.",a:"FDE Mentor"},
+  {t:"You just described why Docker exists. That's a senior mindset.",a:"FDE Mentor"},
+  {t:"Consistency beats intensity. 20 minutes today beats 3 hours never.",a:"FDE Mentor"},
+  {t:"Every senior engineer you admire once sat exactly where you're sitting.",a:"FDE Mentor"},
+  {t:"Done is better than perfect. Ship the ugly version first.",a:"FDE Mentor"},
+  {t:"A Build Log entry that says 'I caught the bare except bug' is worth 10 tutorials.",a:"FDE Mentor"},
+  {t:"Fear of a tool just means you haven't yet hit the problem that needs it.",a:"FDE Mentor"},
+  {t:"Your GitHub is your portfolio. Every commit is a step forward.",a:"FDE Mentor"},
+];
+let qi=Math.floor(Math.random()*QUOTES.length);
+
+const HABITS=[
+  {id:'h1',label:'Coded / studied something'},
+  {id:'h2',label:'Read docs or a tutorial'},
+  {id:'h3',label:'Git committed something'},
+  {id:'h4',label:'Wrote in notes / wiki'},
+  {id:'h5',label:'Reviewed yesterday\'s notes'},
+];
+const DAYS=['M','T','W','T','F','S','S'];
+const TODAY_IDX=(new Date().getDay()+6)%7;
+const XP_LEVELS=[[0,'Apprentice'],[8,'Coder'],[20,'Builder'],[40,'Analyst'],[70,'ML Engineer'],[100,'Senior ML'],[130,'AI Architect'],[160,'FDE Candidate'],[185,'FDE Ready'],[200,'Forward Deployed ⚡']];
+const DIARY_PROJS=['P1','P2','P3','P4','P5'];
+const DIARY_HINTS=['What clicked in Project 1? What broke? Any code you\'re proud of?','Which stat concept finally made sense? What confused you in EDA?','How does CI/CD feel now that you\'ve set it up? What surprised you?','What was hardest about wiring retrieval to the LLM?','What does it feel like to see all 4 projects talking to each other?'];
+
+// ── STATE ─────────────────────────────────────────────
+let state={};
+let habitChecks={};
+let currentFilter='all';
+let currentMode='beginner';
+let activeDiaryTab=0;
+let saveTimers={};
+let timerInterval=null;
+let timerSeconds=0;
+let timerRunning=false;
+let timerGoal=3600;
+
+async function save(){try{await setDoc(DOC_REF,{state,habitChecks,currentMode});}catch(e){console.error('Save failed:',e);}}
+async function load(){
+  try{
+    const snap=await getDoc(DOC_REF);
+    if(snap.exists()){const p=snap.data();state=p.state||{};habitChecks=p.habitChecks||{};currentMode=p.currentMode||'beginner';}
+    const wsnap=await getDoc(doc(_db,"progress","fde_where"));
+    if(wsnap.exists()){const p=wsnap.data();const s=document.getElementById('curr-proj'),l=document.getElementById('curr-level'),n=document.getElementById('curr-note');if(s&&p.proj)s.value=p.proj;if(l&&p.level)l.value=p.level;if(n&&p.note)n.value=p.note;}
+  }catch(e){console.error('Load failed:',e);}
+}
+async function saveWhere(){
+  const s=document.getElementById('curr-proj'),l=document.getElementById('curr-level'),n=document.getElementById('curr-note');
+  try{await setDoc(doc(_db,"progress","fde_where"),{proj:s?.value||'',level:l?.value||'',note:n?.value||''});}catch(e){}
+  updateResume();
+}
+
+function itemId(pId,lvl,idx){return pId+'__'+lvl+'__'+idx}
+function allItems(){
+  const arr=[];
+  PROJECTS.forEach(p=>p.levels.forEach(lv=>lv.items.forEach((it,i)=>arr.push({id:itemId(p.id,lv.l,i),item:it}))));
+  return arr;
+}
+function getStatus(id){return(state[id]||{}).status||'pending'}
+function getField(id,f){return(state[id]||{})[f]||''}
+function setStatus(id,s){if(!state[id])state[id]={};state[id].status=s;save();}
+function setField(id,f,v){if(!state[id])state[id]={};state[id][f]=v;save();}
+
+// ── MODE ──────────────────────────────────────────────
+function setMode(m,btn){
+  currentMode=m;save();
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const root=document.getElementById('app-root');
+  root.classList.remove('mode-beginner','mode-intermediate','mode-pro');
+  root.classList.add('mode-'+m);
+  const descs={beginner:'Just track status — click the badge to advance. No logging required yet.',intermediate:'Gotcha + Code fields unlocked — fill them when you feel ready.',pro:'Full 5-field Build Log — production standard, every entry.'};
+  document.getElementById('mode-desc').textContent=descs[m];
+}
+
+// ── STATS ─────────────────────────────────────────────
+function updateStats(){
+  const all=allItems();
+  const done=all.filter(({id})=>getStatus(id)==='done');
+  const wip=all.filter(({id})=>getStatus(id)==='wip');
+  const rev=all.filter(({id})=>getStatus(id)==='review');
+  const pct=all.length?Math.round(done.length/all.length*100):0;
+  document.getElementById('main-fill').style.width=pct+'%';
+  document.getElementById('main-lbl').textContent=done.length+' of '+all.length+' items complete';
+  document.getElementById('main-pct').textContent=pct+'%';
+  let lvlName='Apprentice';for(const [t,n] of XP_LEVELS){if(done.length>=t)lvlName=n;}
+  document.getElementById('xp-fill').style.width=Math.min(100,Math.round(done.length/200*100))+'%';
+  document.getElementById('xp-level').textContent=lvlName;
+  PROJECTS.forEach(p=>{
+    const items=p.levels.flatMap(lv=>lv.items.map((_,i)=>itemId(p.id,lv.l,i)));
+    const d=items.filter(id=>getStatus(id)==='done').length;
+    const pf=document.getElementById('ppf-'+p.id);if(pf)pf.style.width=Math.round(d/items.length*100)+'%';
+    const pc=document.getElementById('pc-'+p.id);if(pc)pc.textContent=d+'/'+items.length;
+  });
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="sc" style="border-color:var(--s-done-b)"><div class="sc-num" style="color:var(--green)">${done.length}</div><div class="sc-lbl">Done</div></div>
+    <div class="sc" style="border-color:var(--s-wip-b)"><div class="sc-num" style="color:var(--accent)">${wip.length}</div><div class="sc-lbl">Active</div></div>
+    <div class="sc" style="border-color:var(--s-review-b)"><div class="sc-num" style="color:var(--amber)">${rev.length}</div><div class="sc-lbl">Review</div></div>
+    <div class="sc"><div class="sc-num" style="color:var(--ink2)">${all.length-done.length-wip.length-rev.length}</div><div class="sc-lbl">Pending</div></div>
+    <div class="sc" style="border-color:var(--purple-border)"><div class="sc-num" style="color:var(--purple)">${pct}%</div><div class="sc-lbl">Done</div></div>`;
+}
+
+// ── CARD STATUS ───────────────────────────────────────
+function setAndUpdate(id,s){
+  setStatus(id,s);
+  const card=document.getElementById('card-'+id);
+  if(card){card.className='blog-card status-'+s;}
+  const badge=document.getElementById('badge-'+id);
+  if(badge){badge.className='status-badge '+s;badge.textContent=STATUS_LABELS[s];}
+  const acts=document.getElementById('acts-'+id);
+  if(acts)acts.innerHTML=actionBtns(id,s);
+  if(s==='review'||s==='done'){
+    const code=getField(id,'f3');
+    const warn=document.getElementById('warn-'+id);
+    if(warn){
+      const issues=checkAmateur(code);
+      if(issues.length){warn.innerHTML='⚠️ <strong>Fix before marking Complete:</strong><br>'+issues.join('<br>');warn.classList.add('show');}
+      else warn.classList.remove('show');
+    }
+  }
+  updateStats();
+  if(currentFilter!=='all')applyFilter();
+}
+
+function actionBtns(id,s){
+  if(s==='pending')return`<button class="smb to-wip" onclick="setAndUpdate('${id}','wip')">▶ Start</button>`;
+  if(s==='wip')return`<button class="smb to-pending" onclick="setAndUpdate('${id}','pending')">↩ Reset</button><button class="smb to-review" onclick="setAndUpdate('${id}','review')">📋 Submit</button>`;
+  if(s==='review')return`<button class="smb to-wip" onclick="setAndUpdate('${id}','wip')">↩ WIP</button><button class="smb to-done" onclick="setAndUpdate('${id}','done')">✅ Complete</button>`;
+  if(s==='done')return`<button class="smb to-wip" onclick="setAndUpdate('${id}','wip')">↩ Reopen</button>`;
+  return'';
+}
+function checkAmateur(code){
+  if(!code)return[];
+  const issues=[];
+  AMATEUR_PATTERNS.forEach(p=>{if(p.re.test(code))issues.push(p.msg);p.re.lastIndex=0;});
+  return issues;
+}
+function saveField(id,fkey,val){
+  setField(id,fkey,val);
+  const m=document.getElementById('saved-'+id);if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1400);}
+}
+
+// ── FILTER ────────────────────────────────────────────
+function setFilter(t,btn){
+  currentFilter=t;
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');applyFilter();
+}
+function applyFilter(){
+  document.querySelectorAll('.blog-card').forEach(el=>{
+    const id=el.dataset.id,s=getStatus(id),tags=(el.dataset.tags||'').split(',');
+    let show=true;
+    if(currentFilter==='pending')show=s==='pending';
+    else if(currentFilter==='wip')show=s==='wip';
+    else if(currentFilter==='review')show=s==='review';
+    else if(currentFilter==='done')show=s==='done';
+    else if(currentFilter==='build')show=tags.includes('build');
+    else if(currentFilter==='fail')show=tags.includes('fail');
+    else if(currentFilter==='gov')show=tags.includes('gov');
+    else if(currentFilter==='interview')show=tags.includes('interview');
+    el.classList.toggle('search-hide',!show);
+  });
+}
+
+// ── SEARCH ────────────────────────────────────────────
+function handleSearch(inp){
+  const q=inp.value.trim().toLowerCase();
+  document.getElementById('search-clear').classList.toggle('show',q.length>0);
+  const ce=document.getElementById('search-count');
+  if(!q){document.querySelectorAll('.blog-card').forEach(el=>el.classList.remove('search-hide'));ce.style.display='none';return;}
+  let m=0;
+  document.querySelectorAll('.blog-card').forEach(el=>{
+    const match=(el.dataset.name||'').includes(q);
+    el.classList.toggle('search-hide',!match);if(match)m++;
+  });
+  ce.style.display='block';ce.textContent=m+' items match "'+inp.value+'"';
+}
+function clearSearch(){const i=document.getElementById('search-input');if(i)i.value='';handleSearch({value:''});}
+
+// ── PHASE TOGGLE ──────────────────────────────────────
+function toggleProj(id){
+  const b=document.getElementById('pb-'+id),c=document.getElementById('pc-chev-'+id);
+  b.classList.toggle('open',!b.classList.contains('open'));
+  c.classList.toggle('open',!c.classList.contains('open'));
+}
+function toggleCard(id){
+  const b=document.getElementById('bcb-'+id),c=document.getElementById('bcc-'+id),w=document.getElementById('why-'+id);
+  const open=!b.classList.contains('open');
+  b.classList.toggle('open',open);c.classList.toggle('open',open);
+  if(w)w.classList.toggle('show',open);
+}
+
+// ── RESCUE ────────────────────────────────────────────
+function toggleRescue(){
+  const panel=document.getElementById('rescue-panel');
+  const showing=panel.classList.contains('show');
+  if(!showing){showRescueTask();panel.classList.add('show');}
+  else panel.classList.remove('show');
+}
+function showRescueTask(){
+  const t=RESCUE_TASKS[rescueIdx%RESCUE_TASKS.length];
+  document.getElementById('rescue-task').textContent='Your 20-min task: '+t.task;
+  document.getElementById('rescue-why').textContent='Why this matters: '+t.why;
+}
+function nextRescue(){rescueIdx++;showRescueTask();}
+function closeRescue(){document.getElementById('rescue-panel').classList.remove('show');}
+
+// ── TIMER ─────────────────────────────────────────────
+function toggleTimer(){
+  if(timerRunning){
+    clearInterval(timerInterval);timerRunning=false;
+    document.getElementById('timer-btn').textContent='Resume';
+    document.getElementById('timer-btn').classList.remove('active');
+  }else{
+    timerRunning=true;
+    document.getElementById('timer-btn').textContent='Pause';
+    document.getElementById('timer-btn').classList.add('active');
+    timerInterval=setInterval(()=>{
+      timerSeconds++;
+      const m=Math.floor(timerSeconds/60),s=timerSeconds%60;
+      const disp=document.getElementById('timer-display');
+      const lbl=document.getElementById('timer-lbl');
+      if(disp)disp.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      if(timerSeconds>=timerGoal){
+        disp.className='timer-display done';
+        if(lbl)lbl.textContent='Great session! Take a break — you earned it.';
+        clearInterval(timerInterval);timerRunning=false;
+        document.getElementById('timer-btn').textContent='Done';
+      }else if(timerSeconds>=timerGoal-300){
+        if(disp)disp.className='timer-display warning';
+        if(lbl)lbl.textContent='5 minutes left — wrap up your current task.';
+      }else{
+        if(lbl)lbl.textContent='Session in progress — stay focused.';
+      }
+    },1000);
+  }
+}
+function resetTimer(){
+  clearInterval(timerInterval);timerRunning=false;timerSeconds=0;
+  document.getElementById('timer-display').textContent='00:00';
+  document.getElementById('timer-display').className='timer-display';
+  document.getElementById('timer-lbl').textContent='Start your 1-hour session timer';
+  document.getElementById('timer-btn').textContent='Start';
+  document.getElementById('timer-btn').classList.remove('active');
+}
+
+// ── QUOTE ─────────────────────────────────────────────
+function showQuote(){const q=QUOTES[qi];document.getElementById('q-text').textContent=q.t;document.getElementById('q-author').textContent='— '+q.a;}
+function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote();}
+
+// ── STREAK ────────────────────────────────────────────
+async function updateStreak(){
+  const today=new Date().toDateString();
+  let streak=1,best=1,last='';
+  try{const snap=await getDoc(doc(_db,"progress","fde_streak"));if(snap.exists()){const p=snap.data();streak=p.streak||1;best=p.best||1;last=p.last||'';}}catch(e){}
+  if(last!==today){
+    const yest=new Date(Date.now()-864e5).toDateString();
+    streak=last===yest?streak+1:1;best=Math.max(best,streak);
+    try{await setDoc(doc(_db,"progress","fde_streak"),{streak,best,last:today});}catch(e){}
+  }
+  document.getElementById('streak-num').textContent=streak;
+  document.getElementById('streak-sub').textContent=streak===1?'day streak — come back tomorrow!':streak+' days — don\'t break the chain!';
+  document.getElementById('streak-best').textContent='Best: '+best;
+}
+
+// ── HABITS ────────────────────────────────────────────
+function toggleHabit(hid,di){
+  const k=hid+'_'+di;habitChecks[k]=!habitChecks[k];
+  const dot=document.getElementById('dot-'+hid+'-'+di);
+  if(dot){dot.classList.toggle('done',!!habitChecks[k]);dot.textContent=habitChecks[k]?'✓':'';}
+  save();
+}
+function renderHabits(){
+  const lw=document.getElementById('day-labels');
+  if(lw)lw.innerHTML=DAYS.map((d,i)=>`<div class="hday-lbl" style="${i===TODAY_IDX?'color:var(--accent);font-weight:700':''}">${d}</div>`).join('');
+  const body=document.getElementById('habits-body');
+  if(!body)return;
+  body.innerHTML=HABITS.map(h=>`<div class="habit-row">
+    <div class="habit-lbl">${h.label}</div>
+    <div class="habit-dots">${DAYS.map((_,i)=>{const done=!!habitChecks[h.id+'_'+i];return`<div class="hdot${done?' done':''}${i===TODAY_IDX?' today':''}" id="dot-${h.id}-${i}" onclick="toggleHabit('${h.id}',${i})">${done?'✓':''}</div>`;}).join('')}</div>
+  </div>`).join('');
+}
+
+// ── NOTES ─────────────────────────────────────────────
+let noteTimer=null;
+async function initNotes(){
+  const area=document.getElementById('notes-area');if(!area)return;
+  try{const snap=await getDoc(doc(_db,"progress","fde_notes"));if(snap.exists()&&snap.data().notes)area.value=snap.data().notes;}catch(e){}
+  updateNoteCount();
+  area.addEventListener('input',()=>{
+    updateNoteCount();
+    clearTimeout(noteTimer);
+    noteTimer=setTimeout(async()=>{
+      try{await setDoc(doc(_db,"progress","fde_notes"),{notes:area.value});}catch(e){}
+      const m=document.getElementById('notes-saved');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1400);}
+    },800);
+  });
+}
+function updateNoteCount(){const a=document.getElementById('notes-area'),e=document.getElementById('notes-char');if(a&&e)e.textContent=(a.value||'').length+' chars';}
+
+// ── DIARY ─────────────────────────────────────────────
+async function renderDiary(){
+  const te=document.getElementById('diary-tabs'),ee=document.getElementById('diary-entries');if(!te||!ee)return;
+  te.innerHTML=DIARY_PROJS.map((p,i)=>`<button class="diary-tab${i===activeDiaryTab?' active':''}" onclick="switchDiary(${i})">${p}</button>`).join('');
+  const diaryData={};
+  try{const snap=await getDoc(doc(_db,"progress","fde_diary"));if(snap.exists())Object.assign(diaryData,snap.data());}catch(e){}
+  ee.innerHTML=DIARY_PROJS.map((p,i)=>{
+    const saved=diaryData[p]||'';
+    return`<div class="diary-entry${i===activeDiaryTab?' active':''}">
+      <textarea class="diary-area" id="diary-${p}" placeholder="${DIARY_HINTS[i]}" oninput="saveDiary('${p}')">${saved}</textarea>
+      <div class="diary-meta"><span>Project ${i+1} diary</span><span id="dc-${p}">${saved.length} chars</span></div>
+    </div>`;
+  }).join('');
+}
+function switchDiary(i){activeDiaryTab=i;document.querySelectorAll('.diary-tab').forEach((t,j)=>t.classList.toggle('active',j===i));document.querySelectorAll('.diary-entry').forEach((e,j)=>e.classList.toggle('active',j===i));}
+function saveDiary(p){
+  const a=document.getElementById('diary-'+p),c=document.getElementById('dc-'+p);if(!a)return;
+  if(c)c.textContent=a.value.length+' chars';
+  clearTimeout(saveTimers['d_'+p]);
+  saveTimers['d_'+p]=setTimeout(async()=>{
+    try{
+      const snap=await getDoc(doc(_db,"progress","fde_diary"));
+      const existing=snap.exists()?snap.data():{};
+      existing[p]=a.value;
+      await setDoc(doc(_db,"progress","fde_diary"),existing);
+    }catch(e){}
+    const s=document.getElementById('diary-saved');if(s){s.classList.add('show');setTimeout(()=>s.classList.remove('show'),1400);}
+  },700);
+}
+
+// ── RESUME PROMPT ─────────────────────────────────────
+function updateResume(){
+  const proj=document.getElementById('curr-proj')?.value||'Project 1';
+  const level=document.getElementById('curr-level')?.value||'Level 1';
+  const note=document.getElementById('curr-note')?.value||'';
+  const s=`Skip setup questions. We are on:\n${proj}\n${level}\n${note?'Last/next: '+note:''}\nContinue the Learning Loop from here.\n[Paste FDE_Mentor_Prompt_v3.txt above this line]`;
+  const el=document.getElementById('resume-snippet');if(el)el.textContent=s;
+}
+function copyResume(){
+  const proj=document.getElementById('curr-proj')?.value||'Project 1';
+  const level=document.getElementById('curr-level')?.value||'Level 1';
+  const note=document.getElementById('curr-note')?.value||'';
+  const s=`Skip setup questions. We are on: ${proj}, ${level}. ${note?'Last/next: '+note+'.':''} Continue the Learning Loop from here.\n\n[Paste FDE_Mentor_Prompt_v3.txt above this line]`;
+  navigator.clipboard.writeText(s).catch(()=>{});
+  const btn=document.getElementById('prompt-copy-btn');
+  if(btn){btn.textContent='✓ Copied!';setTimeout(()=>btn.textContent='Copy',2000);}
+}
+
+// ── EXPORT ────────────────────────────────────────────
+function exportProgress(){
+  const lines=['FDE Build Log v7 — Progress Export','Generated: '+new Date().toLocaleDateString(),''];
+  PROJECTS.forEach(p=>{
+    lines.push('═══ '+p.title+' ═══');
+    p.levels.forEach(lv=>{
+      lines.push('  Level '+lv.l+': '+lv.label);
+      lv.items.forEach((it,i)=>{
+        const id=itemId(p.id,lv.l,i),s=getStatus(id);
+        lines.push('    ['+s.toUpperCase()+'] '+it.n);
+        const code=getField(id,'f3');if(code)lines.push('    CODE:\n'+code);
+      });
+    });
+    lines.push('');
+  });
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fde_buildlog_v7.txt';a.click();
+}
+function resetAll(){
+  if(!confirm('Reset ALL progress? Cannot be undone.'))return;
+  state={};save();render();updateStats();
+}
+
+// ── RENDER ────────────────────────────────────────────
+function render(){
+  load();
+  let html='';
+  PROJECTS.forEach((proj,pi)=>{
+    html+=`<div class="proj-card" style="border-color:transparent">
+      <div class="proj-head" style="background:${proj.bg}" onclick="toggleProj('${proj.id}')">
+        <div class="proj-num">${pi+1}</div>
+        <div class="proj-info"><div class="proj-title">${proj.title}</div><div class="proj-sub">${proj.phase}</div></div>
+        <div class="proj-right">
+          <span class="proj-count" id="pc-${proj.id}">–</span>
+          <span class="proj-chev" id="pc-chev-${proj.id}">▶</span>
+        </div>
+      </div>
+      <div class="proj-prog"><div class="proj-prog-fill" id="ppf-${proj.id}" style="width:0%"></div></div>
+      <div class="proj-body" id="pb-${proj.id}">
+        <div class="goal-box"><strong>Goal:</strong> ${proj.goal}</div>
+        <div class="skill-box"><strong>🎯 INVISIBLE SKILL:</strong> ${proj.skill.replace('<strong>INVISIBLE SKILL — ','').replace(':</strong>',':')}</div>
+        <div class="job-box"><strong>💼 ROLES UNLOCKED:</strong> ${proj.jobs}</div>`;
+
+    proj.levels.forEach(lv=>{
+      html+=`<div class="sec-head"><span class="level-badge ${lv.badge}">LEVEL ${lv.l}</span><div class="sec-lbl">${lv.label}</div><div class="sec-line"></div></div>
+      <div style="font-size:11px;color:var(--ink3);background:var(--paper3);border-radius:var(--r-xs);padding:6px 10px;margin-bottom:7px;border-left:2px solid var(--paper4)">💡 ${lv.hint}</div>`;
+
+      lv.items.forEach((it,ii)=>{
+        const id=itemId(proj.id,lv.l,ii);
+        const s=getStatus(id);
+        const tags=it.tags||[];
+        const isWhy=tags.includes('why');
+        html+=`<div class="blog-card status-${s}" id="card-${id}" data-id="${id}" data-name="${it.n.toLowerCase()}" data-tags="${tags.join(',')}">
+          <div class="bc-head" onclick="toggleCard('${id}')">
+            <span class="status-badge ${s}" id="badge-${id}" onclick="event.stopPropagation();setAndUpdate('${id}','${STATUS_CYCLE[s]}')" title="Click to advance">${STATUS_LABELS[s]}</span>
+            <span class="bc-name"${isWhy?' style="color:var(--amber);font-style:italic"':''}>${isWhy?'💡 ':''} ${it.n}</span>
+            <span class="bc-chev" id="bcc-${id}">▶</span>
+          </div>
+          <div class="why-box" id="why-${id}"${isWhy?'':' style="display:none!important"'}><strong>Why this matters:</strong> Understanding this concept prevents real production failures. Read the mentor note in the project header for context.</div>
+          <div class="bc-body" id="bcb-${id}">
+            <div class="log-fields">
+              ${LOG_FIELDS.filter(f=>f.intermediate).map((f,fi)=>`
+              <div class="log-field ${f.cls}">
+                <div class="log-field-label"><span class="lfl-num">${fi+1}</span>${f.n} <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--ink3);margin-left:4px;font-family:var(--font-body)">— ${f.hint}</span></div>
+                <textarea class="log-textarea${f.code?' code-f':''}" id="field-${id}-f${fi+1}" placeholder="${f.ph}" oninput="saveField('${id}','f${fi+1}',this.value)">${getField(id,'f'+(fi+1))}</textarea>
+              </div>`).join('')}
+              <div class="pro-only">
+              ${LOG_FIELDS.filter(f=>!f.intermediate).map((f,fi)=>`
+              <div class="log-field ${f.cls}">
+                <div class="log-field-label"><span class="lfl-num">${fi+3}</span>${f.n} <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--ink3);margin-left:4px;font-family:var(--font-body)">— ${f.hint}</span></div>
+                <textarea class="log-textarea${f.code?' code-f':''}" id="field-${id}-f${fi+3}" placeholder="${f.ph}" oninput="saveField('${id}','f${fi+3}',this.value)">${getField(id,'f'+(fi+3))}</textarea>
+              </div>`).join('')}
+              </div>
+            </div>
+            <div class="bc-warn" id="warn-${id}"></div>
+            <div class="bc-actions">
+              <div class="log-fields"><button class="bc-save-btn" onclick="saveAllFields('${id}')">💾 Save</button></div>
+              <span class="saved-msg" id="saved-${id}">✓ Saved</span>
+              <div class="bc-mark-btns" id="acts-${id}">${actionBtns(id,s)}</div>
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+    html+=`<div class="mentor-box">${proj.mentor}</div></div></div>`;
+  });
+
+  document.getElementById('projects-wrap').innerHTML=html;
+  renderHabits();
+  initNotes();
+  renderDiary();
+  updateResume();
+  updateStats();
+
+  // apply saved mode
+  const mb=document.getElementById('mb-'+currentMode);
+  if(mb){document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));mb.classList.add('active');}
+  const root=document.getElementById('app-root');
+  root.classList.remove('mode-beginner','mode-intermediate','mode-pro');
+  root.classList.add('mode-'+currentMode);
+}
+
+function saveAllFields(id){
+  LOG_FIELDS.forEach((_,fi)=>{const fkey='f'+(fi+1);const el=document.getElementById('field-'+id+'-'+fkey);if(el)setField(id,fkey,el.value);});
+  const m=document.getElementById('saved-'+id);if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1400);}
+  const code=getField(id,'f3');
+  const warn=document.getElementById('warn-'+id);
+  if(warn){const issues=checkAmateur(code);if(issues.length){warn.innerHTML='⚠️ <strong>Fix before marking Complete:</strong><br>'+issues.join('<br>');warn.classList.add('show');}else warn.classList.remove('show');}
+}
+
+window.addEventListener('scroll',()=>{
+  document.getElementById('scroll-top').classList.toggle('visible',window.scrollY>300);
+});
+
+load().then(()=>{
+  render();
+  showQuote();
+  updateStreak();
+});
+</script>
+</body>
+</html>
