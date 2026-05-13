@@ -1182,5 +1182,57 @@ render();
 showQuote();
 updateStreak();
 </script>
+  <input type="checkbox" id="task1">
+  <script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC6GEvz3VK2RKpC3EXqXxRPSrk-G6e5sZw",
+  authDomain: "roadmap-sync-5fc1f.firebaseapp.com",
+  projectId: "roadmap-sync-5fc1f",
+  storageBucket: "roadmap-sync-5fc1f.firebasestorage.app",
+  messagingSenderId: "834903662109",
+  appId: "1:834903662109:web:1b1cc3cc8ae8c852a1b0f4"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+const checkbox = document.getElementById("task1");
+
+async function saveProgress() {
+
+  await setDoc(doc(db, "roadmap", "main"), {
+    checked: checkbox.checked
+  });
+
+}
+
+async function loadProgress() {
+
+  const docRef = doc(db, "roadmap", "main");
+
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    checkbox.checked = docSnap.data().checked;
+  }
+
+}
+
+checkbox.addEventListener("change", saveProgress);
+
+loadProgress();
+
+</script>
 </body>
 </html>
