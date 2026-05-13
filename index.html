@@ -531,7 +531,20 @@ body{font-family:var(--font-body);background:var(--paper);color:var(--ink);font-
 </div>
 <button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyC6GEvz3VK2RKpC3EXqXxRPSrk-G6e5sZw",
+  authDomain: "roadmap-sync-5fc1f.firebaseapp.com",
+  projectId: "roadmap-sync-5fc1f",
+  storageBucket: "roadmap-sync-5fc1f.firebasestorage.app",
+  messagingSenderId: "834903662109",
+  appId: "1:834903662109:web:1b1cc3cc8ae8c852a1b0f4"
+};
+const _app = initializeApp(firebaseConfig);
+const _db = getFirestore(_app);
+const DOC_REF = doc(_db, "progress", "fde_build_log");
 // ═══════════════════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════════════════
@@ -760,18 +773,18 @@ let timerSeconds=0;
 let timerRunning=false;
 let timerGoal=3600;
 
-function save(){try{localStorage.setItem('fde_v7',JSON.stringify({state,habitChecks,currentMode}));}catch(e){}}
-function load(){
+async function save(){try{await setDoc(DOC_REF,{state,habitChecks,currentMode});}catch(e){console.error('Save failed:',e);}}
+async function load(){
   try{
-    const d=localStorage.getItem('fde_v7');
-    if(d){const p=JSON.parse(d);state=p.state||{};habitChecks=p.habitChecks||{};currentMode=p.currentMode||'beginner';}
-    const w=localStorage.getItem('fde_v7_where');
-    if(w){const p=JSON.parse(w);const s=document.getElementById('curr-proj'),l=document.getElementById('curr-level'),n=document.getElementById('curr-note');if(s&&p.proj)s.value=p.proj;if(l&&p.level)l.value=p.level;if(n&&p.note)n.value=p.note;}
-  }catch(e){}
+    const snap=await getDoc(DOC_REF);
+    if(snap.exists()){const p=snap.data();state=p.state||{};habitChecks=p.habitChecks||{};currentMode=p.currentMode||'beginner';}
+    const wsnap=await getDoc(doc(_db,"progress","fde_where"));
+    if(wsnap.exists()){const p=wsnap.data();const s=document.getElementById('curr-proj'),l=document.getElementById('curr-level'),n=document.getElementById('curr-note');if(s&&p.proj)s.value=p.proj;if(l&&p.level)l.value=p.level;if(n&&p.note)n.value=p.note;}
+  }catch(e){console.error('Load failed:',e);}
 }
-function saveWhere(){
+async function saveWhere(){
   const s=document.getElementById('curr-proj'),l=document.getElementById('curr-level'),n=document.getElementById('curr-note');
-  try{localStorage.setItem('fde_v7_where',JSON.stringify({proj:s?.value,level:l?.value,note:n?.value}));}catch(e){}
+  try{await setDoc(doc(_db,"progress","fde_where"),{proj:s?.value||'',level:l?.value||'',note:n?.value||''});}catch(e){}
   updateResume();
 }
 
@@ -974,14 +987,14 @@ function showQuote(){const q=QUOTES[qi];document.getElementById('q-text').textCo
 function nextQuote(){qi=(qi+1)%QUOTES.length;showQuote();}
 
 // ── STREAK ────────────────────────────────────────────
-function updateStreak(){
+async function updateStreak(){
   const today=new Date().toDateString();
   let streak=1,best=1,last='';
-  try{const s=localStorage.getItem('fde_v7_streak');if(s){const p=JSON.parse(s);streak=p.streak||1;best=p.best||1;last=p.last||'';}}catch(e){}
+  try{const snap=await getDoc(doc(_db,"progress","fde_streak"));if(snap.exists()){const p=snap.data();streak=p.streak||1;best=p.best||1;last=p.last||'';}}catch(e){}
   if(last!==today){
     const yest=new Date(Date.now()-864e5).toDateString();
     streak=last===yest?streak+1:1;best=Math.max(best,streak);
-    try{localStorage.setItem('fde_v7_streak',JSON.stringify({streak,best,last:today}));}catch(e){}
+    try{await setDoc(doc(_db,"progress","fde_streak"),{streak,best,last:today});}catch(e){}
   }
   document.getElementById('streak-num').textContent=streak;
   document.getElementById('streak-sub').textContent=streak===1?'day streak — come back tomorrow!':streak+' days — don\'t break the chain!';
@@ -1008,15 +1021,15 @@ function renderHabits(){
 
 // ── NOTES ─────────────────────────────────────────────
 let noteTimer=null;
-function initNotes(){
+async function initNotes(){
   const area=document.getElementById('notes-area');if(!area)return;
-  try{const s=localStorage.getItem('fde_v7_notes');if(s)area.value=s;}catch(e){}
+  try{const snap=await getDoc(doc(_db,"progress","fde_notes"));if(snap.exists()&&snap.data().notes)area.value=snap.data().notes;}catch(e){}
   updateNoteCount();
   area.addEventListener('input',()=>{
     updateNoteCount();
     clearTimeout(noteTimer);
-    noteTimer=setTimeout(()=>{
-      try{localStorage.setItem('fde_v7_notes',area.value);}catch(e){}
+    noteTimer=setTimeout(async()=>{
+      try{await setDoc(doc(_db,"progress","fde_notes"),{notes:area.value});}catch(e){}
       const m=document.getElementById('notes-saved');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1400);}
     },800);
   });
@@ -1024,11 +1037,13 @@ function initNotes(){
 function updateNoteCount(){const a=document.getElementById('notes-area'),e=document.getElementById('notes-char');if(a&&e)e.textContent=(a.value||'').length+' chars';}
 
 // ── DIARY ─────────────────────────────────────────────
-function renderDiary(){
+async function renderDiary(){
   const te=document.getElementById('diary-tabs'),ee=document.getElementById('diary-entries');if(!te||!ee)return;
   te.innerHTML=DIARY_PROJS.map((p,i)=>`<button class="diary-tab${i===activeDiaryTab?' active':''}" onclick="switchDiary(${i})">${p}</button>`).join('');
+  const diaryData={};
+  try{const snap=await getDoc(doc(_db,"progress","fde_diary"));if(snap.exists())Object.assign(diaryData,snap.data());}catch(e){}
   ee.innerHTML=DIARY_PROJS.map((p,i)=>{
-    let saved='';try{const d=localStorage.getItem('fde_v7_diary_'+p);if(d)saved=d;}catch(e){}
+    const saved=diaryData[p]||'';
     return`<div class="diary-entry${i===activeDiaryTab?' active':''}">
       <textarea class="diary-area" id="diary-${p}" placeholder="${DIARY_HINTS[i]}" oninput="saveDiary('${p}')">${saved}</textarea>
       <div class="diary-meta"><span>Project ${i+1} diary</span><span id="dc-${p}">${saved.length} chars</span></div>
@@ -1040,8 +1055,13 @@ function saveDiary(p){
   const a=document.getElementById('diary-'+p),c=document.getElementById('dc-'+p);if(!a)return;
   if(c)c.textContent=a.value.length+' chars';
   clearTimeout(saveTimers['d_'+p]);
-  saveTimers['d_'+p]=setTimeout(()=>{
-    try{localStorage.setItem('fde_v7_diary_'+p,a.value);}catch(e){}
+  saveTimers['d_'+p]=setTimeout(async()=>{
+    try{
+      const snap=await getDoc(doc(_db,"progress","fde_diary"));
+      const existing=snap.exists()?snap.data():{};
+      existing[p]=a.value;
+      await setDoc(doc(_db,"progress","fde_diary"),existing);
+    }catch(e){}
     const s=document.getElementById('diary-saved');if(s){s.classList.add('show');setTimeout(()=>s.classList.remove('show'),1400);}
   },700);
 }
@@ -1178,61 +1198,11 @@ window.addEventListener('scroll',()=>{
   document.getElementById('scroll-top').classList.toggle('visible',window.scrollY>300);
 });
 
-render();
-showQuote();
-updateStreak();
-</script>
-  <input type="checkbox" id="task1">
-  <script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyC6GEvz3VK2RKpC3EXqXxRPSrk-G6e5sZw",
-  authDomain: "roadmap-sync-5fc1f.firebaseapp.com",
-  projectId: "roadmap-sync-5fc1f",
-  storageBucket: "roadmap-sync-5fc1f.firebasestorage.app",
-  messagingSenderId: "834903662109",
-  appId: "1:834903662109:web:1b1cc3cc8ae8c852a1b0f4"
-};
-
-const app = initializeApp(firebaseConfig);
-
-const db = getFirestore(app);
-
-const checkbox = document.getElementById("task1");
-
-async function saveProgress() {
-
-  await setDoc(doc(db, "roadmap", "main"), {
-    checked: checkbox.checked
-  });
-
-}
-
-async function loadProgress() {
-
-  const docRef = doc(db, "roadmap", "main");
-
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    checkbox.checked = docSnap.data().checked;
-  }
-
-}
-
-checkbox.addEventListener("change", saveProgress);
-
-loadProgress();
-
+load().then(()=>{
+  render();
+  showQuote();
+  updateStreak();
+});
 </script>
 </body>
 </html>
